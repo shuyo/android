@@ -9,7 +9,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class StopWatchLogActivity extends Activity {
-	public long startTime;
+	public long startTime, milliTime = 0;
 	private Handler mHandler = new Handler();
 	private MyTimerTask myTimerTask = null;
 	private TextView mTextView;
@@ -22,22 +22,27 @@ public class StopWatchLogActivity extends Activity {
 
 		Button start_btn = (Button) findViewById(R.id.start_btn);
 		start_btn.setOnClickListener(new StartBtnClickListener());
+		findViewById(R.id.reset_btn).setOnClickListener(new ResetBtnClickListener());
 
 		mTextView = (TextView) findViewById(R.id.timeText);
 
 	}
 
+	void viewTime() {
+		int seconds = (int) (milliTime / 1000);
+		int minutes = seconds / 60;
+		seconds = seconds % 60;
+
+		mTextView.setText(String.format("%d:%02d.%02d", minutes, seconds,
+				(milliTime % 1000) / 10));
+	}
+	
 	class MyTimerTask implements Runnable {
 
 		@Override
 		public void run() {
-			long millis = System.currentTimeMillis() - startTime;
-			int seconds = (int) (millis / 1000);
-			int minutes = seconds / 60;
-			seconds = seconds % 60;
-
-			mTextView.setText(String.format("%d:%02d.%02d", minutes, seconds,
-					(millis % 1000) / 10));
+			milliTime = System.currentTimeMillis() - startTime;
+			viewTime();
 
 			mHandler.postDelayed(this, 10);
 
@@ -50,7 +55,7 @@ public class StopWatchLogActivity extends Activity {
 		@Override
 		public void onClick(View v) {
 			if (myTimerTask == null) {
-				startTime = System.currentTimeMillis();
+				startTime = System.currentTimeMillis() - milliTime;
 				myTimerTask = new MyTimerTask();
 				mHandler.post(myTimerTask);
 			} else {
@@ -61,4 +66,12 @@ public class StopWatchLogActivity extends Activity {
 
 	}
 
+	class ResetBtnClickListener implements OnClickListener {
+
+		@Override
+		public void onClick(View v) {
+			milliTime = 0;
+			viewTime();
+		}
+	}
 }
